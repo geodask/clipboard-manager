@@ -3,6 +3,9 @@ package daemon
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/geodask/clipboard-manager/internal/domain"
@@ -49,6 +52,30 @@ func (d *Daemon) Run(ctx context.Context) error {
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-
 	}
+}
+
+func (d *Daemon) Start() error {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	errChan := make(chan error, 1)
+	go func() {
+		errChan <- d.Run(ctx)
+	}()
+
+	select {
+	case <-sigChan:
+		fmt.Println("\nShutting down gracefully...")
+		cancel()
+		err := <-errChan
+		fmt.Println("Shutdown complete.")
+		return err
+	case err := <-errChan:
+		return err
+	}
+
 }
