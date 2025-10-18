@@ -19,15 +19,21 @@ type Storage interface {
 	Store(entry *domain.ClipboardEntry) error
 }
 
-type Daemon struct {
-	monitor Monitor
-	storage Storage
+type Analyzer interface {
+	Analyze(entry *domain.ClipboardEntry) *domain.Analysis
 }
 
-func NewDaemon(monitor Monitor, storage Storage) *Daemon {
+type Daemon struct {
+	monitor  Monitor
+	storage  Storage
+	analyzer Analyzer
+}
+
+func NewDaemon(monitor Monitor, storage Storage, analyzer Analyzer) *Daemon {
 	return &Daemon{
-		monitor: monitor,
-		storage: storage,
+		monitor:  monitor,
+		storage:  storage,
+		analyzer: analyzer,
 	}
 }
 
@@ -45,6 +51,15 @@ func (d *Daemon) Run(ctx context.Context) error {
 			}
 
 			if changed {
+				analysis := d.analyzer.Analyze(entry)
+
+				if analysis.IsSensitive {
+					fmt.Printf("Sensitive content detected: %s\n", analysis.Reason)
+					continue
+				}
+
+				fmt.Printf("Storing %s content\n", analysis.Type)
+
 				if err := d.storage.Store(entry); err != nil {
 					fmt.Printf("Storage error: %v\n", err)
 				}

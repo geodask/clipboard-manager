@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/geodask/clipboard-manager/internal/analyzer"
 	"github.com/geodask/clipboard-manager/internal/daemon"
 	"github.com/geodask/clipboard-manager/internal/monitor"
 	"github.com/geodask/clipboard-manager/internal/storage"
@@ -17,7 +18,8 @@ func main() {
 	defer storage.Close()
 
 	monitor := monitor.NewPollingMonitor()
-	daemon := daemon.NewDaemon(monitor, storage)
+	analyzer := analyzer.NewSimpleAnalyzer()
+	daemon := daemon.NewDaemon(monitor, storage, analyzer)
 
 	if err := daemon.Start(); err != nil {
 		fmt.Printf("Error: %v\n", err)
