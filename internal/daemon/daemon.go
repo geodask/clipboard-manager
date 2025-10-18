@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -9,6 +10,7 @@ import (
 	"time"
 
 	"github.com/geodask/clipboard-manager/internal/domain"
+	"github.com/geodask/clipboard-manager/internal/service"
 )
 
 type Monitor interface {
@@ -23,17 +25,19 @@ type Analyzer interface {
 	Analyze(entry *domain.ClipboardEntry) *domain.Analysis
 }
 
-type Daemon struct {
-	monitor  Monitor
-	storage  Storage
-	analyzer Analyzer
+type Service interface {
+	ProcessNewEntry(ctx context.Context, entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error)
 }
 
-func NewDaemon(monitor Monitor, storage Storage, analyzer Analyzer) *Daemon {
+type Daemon struct {
+	monitor Monitor
+	service Service
+}
+
+func NewDaemon(monitor Monitor, service Service) *Daemon {
 	return &Daemon{
-		monitor:  monitor,
-		storage:  storage,
-		analyzer: analyzer,
+		monitor: monitor,
+		service: service,
 	}
 }
 
@@ -51,25 +55,20 @@ func (d *Daemon) Run(ctx context.Context) error {
 			}
 
 			if changed {
-				analysis := d.analyzer.Analyze(entry)
 
-				if analysis.IsSensitive {
-					fmt.Printf("Sensitive content detected: %s\n", analysis.Reason)
+				storedEntry, err := d.service.ProcessNewEntry(ctx, entry)
+
+				if err != nil {
+					var sensitiveErr *service.SensitiveContentError
+					if errors.As(err, &sensitiveErr) {
+						fmt.Printf("Skipped sensitive content: %s\n", sensitiveErr.Reason)
+					} else {
+						fmt.Printf("Error processing entry: %v\n", err)
+					}
 					continue
 				}
 
-				fmt.Printf("Storing %s content\n", analysis.Type)
-
-				storedEntry, err := d.storage.Store(ctx, entry)
-				if err != nil {
-					if ctx.Err() != nil {
-						fmt.Println("Storage cancelled - shutting down")
-						return ctx.Err()
-					}
-					fmt.Printf("Storage error: %v\n", err)
-				} else {
-					fmt.Printf("Stored with ID: %s\n", storedEntry.Id)
-				}
+				fmt.Printf("Stored entry %s\n", storedEntry.Id)
 			}
 		case <-ctx.Done():
 			return ctx.Err()

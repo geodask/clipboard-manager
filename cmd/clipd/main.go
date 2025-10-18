@@ -6,6 +6,7 @@ import (
 	"github.com/geodask/clipboard-manager/internal/analyzer"
 	"github.com/geodask/clipboard-manager/internal/daemon"
 	"github.com/geodask/clipboard-manager/internal/monitor"
+	"github.com/geodask/clipboard-manager/internal/service"
 	"github.com/geodask/clipboard-manager/internal/storage"
 )
 
@@ -19,7 +20,9 @@ func main() {
 
 	monitor := monitor.NewPollingMonitor()
 	analyzer := analyzer.NewSimpleAnalyzer()
-	daemon := daemon.NewDaemon(monitor, storage, analyzer)
+
+	service := service.NewClipboardService(storage, analyzer)
+	daemon := daemon.NewDaemon(monitor, service)
 
 	if err := daemon.Start(); err != nil {
 		fmt.Printf("Error: %v\n", err)
