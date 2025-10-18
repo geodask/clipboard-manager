@@ -67,8 +67,9 @@ func listHistory() {
 	fmt.Printf("Last %d clipboard entries:\n\n", len(entries))
 	for i := len(entries) - 1; i >= 0; i-- {
 		entry := entries[i]
-		fmt.Printf("[%s]\n%s\n---\n",
+		fmt.Printf("[%s] ID: %s\n%s\n---\n", // Add ID display
 			entry.Timestamp.Format("2006-01-02 15:04:05"),
+			entry.Id,
 			truncate(entry.Content, 100))
 	}
 

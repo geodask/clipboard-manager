@@ -3,6 +3,7 @@ package domain
 import "time"
 
 type ClipboardEntry struct {
+	Id        string
 	Content   string
 	Timestamp time.Time
 }

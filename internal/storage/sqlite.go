@@ -2,6 +2,7 @@ package storage
 
 import (
 	"database/sql"
+	"strconv"
 	"time"
 
 	"github.com/geodask/clipboard-manager/internal/domain"
@@ -34,17 +35,29 @@ func NewSQLiteStorage(dbPath string) (*SQLiteStorage, error) {
 	return &SQLiteStorage{db: db}, nil
 }
 
-func (s *SQLiteStorage) Store(entry *domain.ClipboardEntry) error {
-	_, err := s.db.Exec(
+func (s *SQLiteStorage) Store(entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error) {
+	result, err := s.db.Exec(
 		"INSERT INTO clipboard_history (content, timestamp) VALUES (?, ?)",
 		entry.Content, entry.Timestamp,
 	)
-	return err
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	return &domain.ClipboardEntry{
+		Id:        strconv.FormatInt(id, 10),
+		Content:   entry.Content,
+		Timestamp: entry.Timestamp,
+	}, nil
 }
 
 func (s *SQLiteStorage) GetRecent(n int) ([]*domain.ClipboardEntry, error) {
 	rows, err := s.db.Query(
-		"SELECT content, timestamp FROM clipboard_history ORDER BY timestamp DESC LIMIT ?",
+		"SELECT id, content, timestamp FROM clipboard_history ORDER BY timestamp DESC LIMIT ?",
 		n,
 	)
 	if err != nil {
@@ -55,12 +68,14 @@ func (s *SQLiteStorage) GetRecent(n int) ([]*domain.ClipboardEntry, error) {
 	var entries []*domain.ClipboardEntry
 
 	for rows.Next() {
+		var id int64
 		var content string
 		var timestamp time.Time
-		if err := rows.Scan(&content, &timestamp); err != nil {
+		if err := rows.Scan(&id, &content, &timestamp); err != nil {
 			return nil, err
 		}
 		entries = append(entries, &domain.ClipboardEntry{
+			Id:        strconv.FormatInt(id, 10),
 			Content:   content,
 			Timestamp: timestamp,
 		})
