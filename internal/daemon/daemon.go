@@ -16,7 +16,7 @@ type Monitor interface {
 }
 
 type Storage interface {
-	Store(entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error)
+	Store(ctx context.Context, entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error)
 }
 
 type Analyzer interface {
@@ -60,10 +60,15 @@ func (d *Daemon) Run(ctx context.Context) error {
 
 				fmt.Printf("Storing %s content\n", analysis.Type)
 
-				if storedEntry, err := d.storage.Store(entry); err != nil {
+				storedEntry, err := d.storage.Store(ctx, entry)
+				if err != nil {
+					if ctx.Err() != nil {
+						fmt.Println("Storage cancelled - shutting down")
+						return ctx.Err()
+					}
 					fmt.Printf("Storage error: %v\n", err)
 				} else {
-					fmt.Printf("Stored entry with ID: %s\n", storedEntry.Id)
+					fmt.Printf("Stored with ID: %s\n", storedEntry.Id)
 				}
 			}
 		case <-ctx.Done():

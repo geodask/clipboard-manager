@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"database/sql"
 	"strconv"
 	"time"
@@ -35,8 +36,8 @@ func NewSQLiteStorage(dbPath string) (*SQLiteStorage, error) {
 	return &SQLiteStorage{db: db}, nil
 }
 
-func (s *SQLiteStorage) Store(entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error) {
-	result, err := s.db.Exec(
+func (s *SQLiteStorage) Store(ctx context.Context, entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error) {
+	result, err := s.db.ExecContext(ctx,
 		"INSERT INTO clipboard_history (content, timestamp) VALUES (?, ?)",
 		entry.Content, entry.Timestamp,
 	)
@@ -55,8 +56,8 @@ func (s *SQLiteStorage) Store(entry *domain.ClipboardEntry) (*domain.ClipboardEn
 	}, nil
 }
 
-func (s *SQLiteStorage) GetRecent(n int) ([]*domain.ClipboardEntry, error) {
-	rows, err := s.db.Query(
+func (s *SQLiteStorage) GetRecent(ctx context.Context, n int) ([]*domain.ClipboardEntry, error) {
+	rows, err := s.db.QueryContext(ctx,
 		"SELECT id, content, timestamp FROM clipboard_history ORDER BY timestamp DESC LIMIT ?",
 		n,
 	)
@@ -68,6 +69,10 @@ func (s *SQLiteStorage) GetRecent(n int) ([]*domain.ClipboardEntry, error) {
 	var entries []*domain.ClipboardEntry
 
 	for rows.Next() {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
 		var id int64
 		var content string
 		var timestamp time.Time

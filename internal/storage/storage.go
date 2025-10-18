@@ -1,14 +1,15 @@
 package storage
 
 import (
+	"context"
 	"strconv"
 
 	"github.com/geodask/clipboard-manager/internal/domain"
 )
 
 type Storage interface {
-	Store(entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error)
-	GetRecent(n int) ([]*domain.ClipboardEntry, error)
+	Store(ctx context.Context, entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error)
+	GetRecent(ctx context.Context, n int) ([]*domain.ClipboardEntry, error)
 }
 
 type MemoryStorage struct {
@@ -19,7 +20,11 @@ func NewMemoryStorage() *MemoryStorage {
 	return &MemoryStorage{}
 }
 
-func (ms *MemoryStorage) Store(entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error) {
+func (ms *MemoryStorage) Store(ctx context.Context, entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	id := strconv.Itoa(len(ms.entries) + 1)
 	storedEntry := &domain.ClipboardEntry{
 		Id:        id,
@@ -30,7 +35,11 @@ func (ms *MemoryStorage) Store(entry *domain.ClipboardEntry) (*domain.ClipboardE
 	return storedEntry, nil
 }
 
-func (ms *MemoryStorage) GetRecent(n int) ([]*domain.ClipboardEntry, error) {
+func (ms *MemoryStorage) GetRecent(ctx context.Context, n int) ([]*domain.ClipboardEntry, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
 	if len(ms.entries) < n {
 		return ms.entries, nil
 	}

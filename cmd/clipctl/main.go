@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/geodask/clipboard-manager/internal/storage"
 )
@@ -53,7 +55,10 @@ func listHistory() {
 	}
 	defer storage.Close()
 
-	entries, err := storage.GetRecent(n)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	entries, err := storage.GetRecent(ctx, n)
+	defer cancel()
+
 	if err != nil {
 		fmt.Printf("Error retrieving history: %v\n", err)
 		return
