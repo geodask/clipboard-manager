@@ -11,6 +11,7 @@ import (
 
 	"github.com/geodask/clipboard-manager/internal/domain"
 	"github.com/geodask/clipboard-manager/internal/service"
+	"golang.org/x/sync/errgroup"
 )
 
 type Monitor interface {
@@ -29,35 +30,41 @@ type Service interface {
 	ProcessNewEntry(ctx context.Context, entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error)
 }
 
-type Daemon struct {
-	monitor Monitor
-	service Service
+type APIServer interface {
+	Start(ctx context.Context) error
+	Shutdown(ctx context.Context) error
 }
 
-func NewDaemon(monitor Monitor, service Service) *Daemon {
+type Daemon struct {
+	monitor   Monitor
+	service   Service
+	apiServer APIServer
+}
+
+func NewDaemon(monitor Monitor, service Service, apiServer APIServer) *Daemon {
 	return &Daemon{
-		monitor: monitor,
-		service: service,
+		monitor:   monitor,
+		service:   service,
+		apiServer: apiServer,
 	}
 }
 
-func (d *Daemon) Run(ctx context.Context) error {
+func (d *Daemon) runMonitorLoop(ctx context.Context) error {
 	ticker := time.NewTicker(500 * time.Millisecond)
 	defer ticker.Stop()
 
+	fmt.Println("Clipboard monitor started")
 	for {
 		select {
 		case <-ticker.C:
 			entry, changed, err := d.monitor.Check()
 			if err != nil {
-				fmt.Printf("Error: %v\n", err)
+				fmt.Printf("Monitor error: %v\n", err)
 				continue
 			}
 
 			if changed {
-
-				storedEntry, err := d.service.ProcessNewEntry(ctx, entry)
-
+				stored, err := d.service.ProcessNewEntry(ctx, entry)
 				if err != nil {
 					var sensitiveErr *service.SensitiveContentError
 					if errors.As(err, &sensitiveErr) {
@@ -68,12 +75,36 @@ func (d *Daemon) Run(ctx context.Context) error {
 					continue
 				}
 
-				fmt.Printf("Stored entry %s\n", storedEntry.Id)
+				fmt.Printf("Stored entry %s\n", stored.Id)
 			}
+
 		case <-ctx.Done():
+			fmt.Println("Monitor loop stopping...")
 			return ctx.Err()
 		}
 	}
+}
+
+func (d *Daemon) Run(ctx context.Context) error {
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		return d.runMonitorLoop(ctx)
+	})
+
+	g.Go(func() error {
+		return d.apiServer.Start(ctx)
+	})
+
+	g.Go(func() error {
+		<-ctx.Done()
+
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		return d.apiServer.Shutdown(shutdownCtx)
+	})
+
+	return g.Wait()
 }
 
 func (d *Daemon) Start() error {

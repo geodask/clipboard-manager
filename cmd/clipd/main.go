@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/geodask/clipboard-manager/internal/analyzer"
+	"github.com/geodask/clipboard-manager/internal/api"
 	"github.com/geodask/clipboard-manager/internal/daemon"
 	"github.com/geodask/clipboard-manager/internal/monitor"
 	"github.com/geodask/clipboard-manager/internal/service"
@@ -22,7 +23,10 @@ func main() {
 	analyzer := analyzer.NewSimpleAnalyzer()
 
 	service := service.NewClipboardService(storage, analyzer)
-	daemon := daemon.NewDaemon(monitor, service)
+
+	apiServer := api.NewServer(service, "/tmp/clipd.sock")
+
+	daemon := daemon.NewDaemon(monitor, service, apiServer)
 
 	if err := daemon.Start(); err != nil {
 		fmt.Printf("Error: %v\n", err)
