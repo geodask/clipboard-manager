@@ -49,7 +49,9 @@ func (s *ClipboardService) ProcessNewEntry(ctx context.Context, entry *domain.Cl
 	analysis := s.analyzer.Analyze(entry)
 
 	if analysis.IsSensitive {
-		return nil, ErrSensitiveContent
+		return nil, &SensitiveContentError{
+			Reason: analysis.Reason,
+		}
 	}
 
 	stored, err := s.storage.Store(ctx, entry)

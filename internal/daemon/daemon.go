@@ -3,7 +3,7 @@ package daemon
 import (
 	"context"
 	"errors"
-	"fmt"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -41,15 +41,24 @@ type Daemon struct {
 	apiServer       APIServer
 	pollInterval    time.Duration
 	shutdownTimeout time.Duration
+	logger          *slog.Logger
 }
 
-func NewDaemon(monitor Monitor, service Service, apiServer APIServer, pollInterval time.Duration, shutdownTimeout time.Duration) *Daemon {
+func NewDaemon(
+	monitor Monitor,
+	service Service,
+	apiServer APIServer,
+	pollInterval time.Duration,
+	shutdownTimeout time.Duration,
+	logger *slog.Logger,
+) *Daemon {
 	return &Daemon{
 		monitor:         monitor,
 		service:         service,
 		apiServer:       apiServer,
 		pollInterval:    pollInterval,
 		shutdownTimeout: shutdownTimeout,
+		logger:          logger,
 	}
 }
 
@@ -57,33 +66,32 @@ func (d *Daemon) runMonitorLoop(ctx context.Context) error {
 	ticker := time.NewTicker(d.pollInterval)
 	defer ticker.Stop()
 
-	fmt.Println("Clipboard monitor started")
+	d.logger.Info("clipboard monitor started", "poll_interval", d.pollInterval)
 	for {
 		select {
 		case <-ticker.C:
 			entry, changed, err := d.monitor.Check()
 			if err != nil {
-				fmt.Printf("Monitor error: %v\n", err)
+				d.logger.Error("monitor check failed", "error", err)
 				continue
 			}
-
 			if changed {
 				stored, err := d.service.ProcessNewEntry(ctx, entry)
 				if err != nil {
 					var sensitiveErr *service.SensitiveContentError
 					if errors.As(err, &sensitiveErr) {
-						fmt.Printf("Skipped sensitive content: %s\n", sensitiveErr.Reason)
+						d.logger.Debug("skipped sensitive content", "reason", sensitiveErr.Reason, "content_length", len(entry.Content))
 					} else {
-						fmt.Printf("Error processing entry: %v\n", err)
+						d.logger.Error("failed to process entry", "error", err, "content_length", len(entry.Content))
 					}
 					continue
 				}
 
-				fmt.Printf("Stored entry %s\n", stored.Id)
+				d.logger.Info("stored clipboard entry", "id", stored.Id, "content_length", len(stored.Content), "timestamp", stored.Timestamp)
 			}
 
 		case <-ctx.Done():
-			fmt.Println("Monitor loop stopping...")
+			d.logger.Info("monitor loop stopping")
 			return ctx.Err()
 		}
 	}
@@ -103,6 +111,7 @@ func (d *Daemon) Run(ctx context.Context) error {
 	g.Go(func() error {
 		<-ctx.Done()
 
+		d.logger.Info("initiating graceful shutdown", "timeout", d.shutdownTimeout)
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), d.shutdownTimeout)
 		defer cancel()
 		return d.apiServer.Shutdown(shutdownCtx)
@@ -125,12 +134,15 @@ func (d *Daemon) Start() error {
 
 	select {
 	case <-sigChan:
-		fmt.Println("\nShutting down gracefully...")
+		d.logger.Info("received shutdown signal")
 		cancel()
 		err := <-errChan
-		fmt.Println("Shutdown complete.")
+		d.logger.Info("shutdown complete")
 		return err
 	case err := <-errChan:
+		if err != nil {
+			d.logger.Error("daemon error", "error", err)
+		}
 		return err
 	}
 

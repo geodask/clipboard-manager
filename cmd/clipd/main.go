@@ -8,6 +8,7 @@ import (
 	"github.com/geodask/clipboard-manager/internal/api"
 	"github.com/geodask/clipboard-manager/internal/config"
 	"github.com/geodask/clipboard-manager/internal/daemon"
+	"github.com/geodask/clipboard-manager/internal/logger"
 	"github.com/geodask/clipboard-manager/internal/monitor"
 	"github.com/geodask/clipboard-manager/internal/service"
 	"github.com/geodask/clipboard-manager/internal/storage"
@@ -20,9 +21,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	logger, err := logger.New(cfg.Logging)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to initialize logger: %v\n", err)
+		os.Exit(1)
+	}
+
+	logger.Info("starting clipboard manager daemon", "db_path", cfg.Database.Path, "socket_path", cfg.API.SocketPath, "poll_interval", cfg.Daemon.PollInterval)
+
 	storage, err := storage.NewSQLiteStorage(cfg.Database.Path)
 	if err != nil {
-		fmt.Printf("Failed to initialize storage: %v\n", err)
+		logger.Error("failed to initialize storage", "error", err)
 		return
 	}
 	defer storage.Close()
@@ -32,12 +41,14 @@ func main() {
 
 	service := service.NewClipboardService(storage, analyzer)
 
-	apiServer := api.NewServer(service, cfg.API)
+	apiServer := api.NewServer(service, cfg.API, logger)
 
-	daemon := daemon.NewDaemon(monitor, service, apiServer, cfg.Daemon.PollInterval, cfg.Daemon.ShutdownTimeout)
+	daemon := daemon.NewDaemon(monitor, service, apiServer, cfg.Daemon.PollInterval, cfg.Daemon.ShutdownTimeout, logger)
 
 	if err := daemon.Start(); err != nil {
-		fmt.Printf("Error: %v\n", err)
+		logger.Error("daemon stopped with error", "error", err)
+		os.Exit(1)
 	}
 
+	logger.Info("daemon stopped gracefully")
 }
