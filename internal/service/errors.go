@@ -7,6 +7,7 @@ var (
 	ErrNotFound     = errors.New("entry not found")
 	ErrInvalidId    = errors.New("invalid entry ID")
 	ErrEmptyContent = errors.New("content cannot empty")
+	ErrNilEntry     = errors.New("entry cannot be nil")
 
 	// Query-related errors
 	ErrInvalidLimit = errors.New("limit must be between 1 and 1000")

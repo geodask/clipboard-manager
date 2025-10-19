@@ -39,7 +39,7 @@ func NewClipboardService(storage Storage, analyzer Analyzer) *ClipboardService {
 
 func (s *ClipboardService) ProcessNewEntry(ctx context.Context, entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error) {
 	if entry == nil {
-		return nil, fmt.Errorf("entry cannot be nil")
+		return nil, ErrNilEntry
 	}
 
 	if entry.Content == "" {
