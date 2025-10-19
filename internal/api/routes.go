@@ -2,56 +2,37 @@ package api
 
 import (
 	"net/http"
-	"strings"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func (h *Handler) Routes() http.Handler {
-	mux := http.NewServeMux()
+	r := chi.NewRouter()
 
-	mux.HandleFunc("/api/health", h.Health)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
 
-	mux.HandleFunc("/api/v1/history", func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		case http.MethodGet:
-			if strings.HasPrefix(r.URL.Path, "/api/v1/history/") && r.URL.Path != "/api/v1/history/" {
-				h.GetEntry(w, r)
-			} else {
-				h.GetHistory(w, r)
-			}
-		case http.MethodDelete:
-			if strings.HasPrefix(r.URL.Path, "/api/v1/history/") && r.URL.Path != "/api/v1/history/" {
-				h.DeleteEntry(w, r)
-			} else {
-				h.ClearHistory(w, r)
-			}
-		default:
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
+	r.Get("/api/health", h.Health)
+
+	r.Route("/api/v1", func(r chi.Router) {
+
+		r.Route("/history", func(r chi.Router) {
+			r.Get("/", h.GetHistory)
+			r.Get("/{id}", h.GetEntry)
+
+			r.Delete("/", h.ClearHistory)
+			r.Delete("/{id}", h.DeleteEntry)
+		})
+
+		r.Post("/entries", h.CreateEntry)
+
+		r.Get("/search", h.Search)
+
+		r.Get("/stats", h.GetStats)
+
 	})
 
-	mux.HandleFunc("/api/v1/entries", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost {
-			h.CreateEntry(w, r)
-		} else {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
+	return r
 
-	mux.HandleFunc("/api/v1/search", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			h.Search(w, r)
-		} else {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	mux.HandleFunc("/api/v1/stats", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet {
-			h.GetStats(w, r)
-		} else {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		}
-	})
-
-	return mux
 }

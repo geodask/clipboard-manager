@@ -102,7 +102,7 @@ func (s *SQLiteStorage) GetById(ctx context.Context, id string) (*domain.Clipboa
 	err = s.db.QueryRowContext(ctx,
 		"SELECT content, timestamp FROM clipboard_history WHERE id = ?",
 		idInt,
-	).Scan(&content, timestamp)
+	).Scan(&content, &timestamp)
 
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("entry not found")

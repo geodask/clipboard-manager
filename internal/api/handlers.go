@@ -9,6 +9,7 @@ import (
 
 	"github.com/geodask/clipboard-manager/internal/domain"
 	"github.com/geodask/clipboard-manager/internal/service"
+	"github.com/go-chi/chi/v5"
 )
 
 type Service interface {
@@ -31,14 +32,12 @@ func NewHandler(service Service) *Handler {
 	}
 }
 
-// Get /api/v1/health
 func (h *Handler) Health(w http.ResponseWriter, r *http.Request) {
 	respondJSON(w, http.StatusOK, map[string]string{
 		"status": "ok",
 	})
 }
 
-// Get /api/v1/history?limit=n
 func (h *Handler) GetHistory(w http.ResponseWriter, r *http.Request) {
 	limitStr := r.URL.Query().Get("limit")
 	limit := 10
@@ -68,11 +67,8 @@ func (h *Handler) GetHistory(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// GET /api/v1/history/:id
 func (h *Handler) GetEntry(w http.ResponseWriter, r *http.Request) {
-	// Extract ID from URL path
-	// For now, we'll use a simple approach - later we can use a router like gorilla/mux
-	id := r.URL.Path[len("/api/v1/history/"):]
+	id := chi.URLParam(r, "id")
 
 	if id == "" {
 		respondError(w, service.ErrInvalidId)
@@ -92,9 +88,8 @@ func (h *Handler) GetEntry(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// DELETE /api/v1/history/:id
 func (h *Handler) DeleteEntry(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Path[len("/api/v1/history/"):]
+	id := chi.URLParam(r, "id")
 
 	if id == "" {
 		respondError(w, service.ErrInvalidId)
