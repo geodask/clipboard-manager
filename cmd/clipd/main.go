@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/geodask/clipboard-manager/internal/analyzer"
 	"github.com/geodask/clipboard-manager/internal/api"
+	"github.com/geodask/clipboard-manager/internal/config"
 	"github.com/geodask/clipboard-manager/internal/daemon"
 	"github.com/geodask/clipboard-manager/internal/monitor"
 	"github.com/geodask/clipboard-manager/internal/service"
@@ -12,7 +14,13 @@ import (
 )
 
 func main() {
-	storage, err := storage.NewSQLiteStorage("./clipboard.db")
+	cfg, err := config.Load()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to load configuration: %v\n", err)
+		os.Exit(1)
+	}
+
+	storage, err := storage.NewSQLiteStorage(cfg.Database.Path)
 	if err != nil {
 		fmt.Printf("Failed to initialize storage: %v\n", err)
 		return
@@ -24,9 +32,9 @@ func main() {
 
 	service := service.NewClipboardService(storage, analyzer)
 
-	apiServer := api.NewServer(service, "/tmp/clipd.sock")
+	apiServer := api.NewServer(service, cfg.API)
 
-	daemon := daemon.NewDaemon(monitor, service, apiServer)
+	daemon := daemon.NewDaemon(monitor, service, apiServer, cfg.Daemon.PollInterval, cfg.Daemon.ShutdownTimeout)
 
 	if err := daemon.Start(); err != nil {
 		fmt.Printf("Error: %v\n", err)

@@ -2,47 +2,48 @@ package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 
 	"github.com/geodask/clipboard-manager/internal/client"
 )
 
-const socketPath = "/tmp/clipd.sock"
-
 func main() {
-	if len(os.Args) < 2 {
+	socketPath := flag.String("socket", "/tmp/clipd.sock", "Path to the clipd socket")
+	flag.Parse()
+
+	if flag.NArg() < 1 {
 		printUsage()
 		return
 	}
 
-	command := os.Args[1]
+	command := flag.Arg(0)
 
 	switch command {
 	case "list":
-		listHistory()
+		listHistory(*socketPath)
 	case "search":
-		if len(os.Args) < 3 {
+		if flag.NArg() < 2 {
 			fmt.Println("Usage: clipctl search <query>")
 			return
 		}
-		searchHistory(os.Args[2])
+		searchHistory(*socketPath, flag.Arg(1))
 	case "get":
-		if len(os.Args) < 3 {
+		if flag.NArg() < 2 {
 			fmt.Println("Usage: clipctl get <id>")
 			return
 		}
-		getEntry(os.Args[2])
+		getEntry(*socketPath, flag.Arg(1))
 	case "delete":
-		if len(os.Args) < 3 {
+		if flag.NArg() < 1 {
 			fmt.Println("Usage: clipctl delete <id>")
 			return
 		}
-		deleteEntry(os.Args[2])
+		deleteEntry(*socketPath, flag.Arg(1))
 	case "stats":
-		showStats()
+		showStats(*socketPath)
 	default:
 		printUsage()
 	}
@@ -57,10 +58,10 @@ func printUsage() {
 	fmt.Println("  clipctl stats          - Show daemon statistics")
 }
 
-func listHistory() {
+func listHistory(socketPath string) {
 	n := 10
-	if len(os.Args) >= 3 {
-		if num, err := strconv.Atoi(os.Args[2]); err == nil {
+	if flag.NArg() >= 2 {
+		if num, err := strconv.Atoi(flag.Arg(1)); err == nil {
 			n = num
 		}
 	}
@@ -105,7 +106,7 @@ func listHistory() {
 	}
 }
 
-func searchHistory(query string) {
+func searchHistory(socketPath string, query string) {
 	// Create client
 	c := client.NewClient(socketPath)
 
@@ -134,7 +135,7 @@ func searchHistory(query string) {
 	}
 }
 
-func getEntry(id string) {
+func getEntry(socketPath string, id string) {
 	// Create client
 	c := client.NewClient(socketPath)
 
@@ -152,7 +153,7 @@ func getEntry(id string) {
 	fmt.Printf("Content:\n%s\n", entry.Content)
 }
 
-func deleteEntry(id string) {
+func deleteEntry(socketPath string, id string) {
 	// Create client
 	c := client.NewClient(socketPath)
 
@@ -167,7 +168,7 @@ func deleteEntry(id string) {
 	fmt.Printf("Entry %s deleted successfully\n", id)
 }
 
-func showStats() {
+func showStats(socketPath string) {
 	// Create client
 	c := client.NewClient(socketPath)
 

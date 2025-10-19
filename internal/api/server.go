@@ -6,7 +6,8 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"time"
+
+	"github.com/geodask/clipboard-manager/internal/config"
 )
 
 type Server struct {
@@ -15,16 +16,16 @@ type Server struct {
 	listener   net.Listener
 }
 
-func NewServer(service Service, socketPath string) *Server {
+func NewServer(service Service, cfg config.APIConfig) *Server {
 	handler := NewHandler(service)
 
 	return &Server{
-		socketPath: socketPath,
+		socketPath: cfg.SocketPath,
 		httpServer: &http.Server{
 			Handler:      handler.Routes(),
-			ReadTimeout:  10 * time.Second,
-			WriteTimeout: 10 * time.Second,
-			IdleTimeout:  60 * time.Second,
+			ReadTimeout:  cfg.ReadTimeout,
+			WriteTimeout: cfg.WriteTimeout,
+			IdleTimeout:  cfg.IdleTimeout,
 		},
 	}
 }

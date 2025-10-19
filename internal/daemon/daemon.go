@@ -36,21 +36,25 @@ type APIServer interface {
 }
 
 type Daemon struct {
-	monitor   Monitor
-	service   Service
-	apiServer APIServer
+	monitor         Monitor
+	service         Service
+	apiServer       APIServer
+	pollInterval    time.Duration
+	shutdownTimeout time.Duration
 }
 
-func NewDaemon(monitor Monitor, service Service, apiServer APIServer) *Daemon {
+func NewDaemon(monitor Monitor, service Service, apiServer APIServer, pollInterval time.Duration, shutdownTimeout time.Duration) *Daemon {
 	return &Daemon{
-		monitor:   monitor,
-		service:   service,
-		apiServer: apiServer,
+		monitor:         monitor,
+		service:         service,
+		apiServer:       apiServer,
+		pollInterval:    pollInterval,
+		shutdownTimeout: shutdownTimeout,
 	}
 }
 
 func (d *Daemon) runMonitorLoop(ctx context.Context) error {
-	ticker := time.NewTicker(500 * time.Millisecond)
+	ticker := time.NewTicker(d.pollInterval)
 	defer ticker.Stop()
 
 	fmt.Println("Clipboard monitor started")
@@ -99,7 +103,7 @@ func (d *Daemon) Run(ctx context.Context) error {
 	g.Go(func() error {
 		<-ctx.Done()
 
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), d.shutdownTimeout)
 		defer cancel()
 		return d.apiServer.Shutdown(shutdownCtx)
 	})
