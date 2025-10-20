@@ -772,6 +772,15 @@ func TestDeleteOlderThan(t *testing.T) {
 			wantResult:                0,
 			wantDeleteOlderThanCalled: true,
 		},
+		{
+			name:                      "NothingToDelete",
+			cutoff:                    cutoff,
+			deleteOlderThanResult:     0, // No entries deleted
+			deleteOlderThanError:      nil,
+			wantErr:                   nil,
+			wantResult:                0,
+			wantDeleteOlderThanCalled: true,
+		},
 	}
 
 	for _, tt := range tests {
