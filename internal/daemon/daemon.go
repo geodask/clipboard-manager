@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/geodask/clipboard-manager/internal/config"
@@ -42,6 +40,7 @@ type Daemon struct {
 	monitor           Monitor
 	service           Service
 	apiServer         APIServer
+	startTime         time.Time
 	pollInterval      time.Duration
 	shutdownTimeout   time.Duration
 	retentionEnabled  bool
@@ -68,6 +67,7 @@ func NewDaemon(
 		retentionMaxAge:   cfg.RetentionMaxAge,
 		retentionInterval: cfg.RetentionInterval,
 		pidFile:           NewPIDFile(cfg.PIDFile),
+		startTime:         time.Now(),
 		logger:            logger,
 	}
 }
@@ -115,28 +115,32 @@ func (d *Daemon) Start() error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	signalHandler := NewSignalHandler(d)
+	defer signalHandler.Stop()
 
 	errChan := make(chan error, 1)
 	go func() {
 		errChan <- d.Run(ctx)
 	}()
 
-	select {
-	case <-sigChan:
-		d.logger.Info("received shutdown signal")
-		cancel()
-		err := <-errChan
-		d.logger.Info("shutdown complete")
-		return err
-	case err := <-errChan:
-		if err != nil {
-			d.logger.Error("daemon error", "error", err)
-		}
-		return err
-	}
+	for {
+		select {
+		case sig := <-signalHandler.sigChan:
+			shouldContinue := signalHandler.Handle(ctx, sig)
+			if !shouldContinue {
+				cancel()
+				err := <-errChan
+				d.logger.Info("shutdown complete")
+				return err
+			}
 
+		case err := <-errChan:
+			if err != nil && err != context.Canceled {
+				d.logger.Error("daemon error", "error", err)
+			}
+			return err
+		}
+	}
 }
 
 func (d *Daemon) PerformRetention(ctx context.Context) (int, error) {
