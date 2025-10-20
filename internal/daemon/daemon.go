@@ -3,6 +3,7 @@ package daemon
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -46,6 +47,7 @@ type Daemon struct {
 	retentionEnabled  bool
 	retentionMaxAge   time.Duration
 	retentionInterval time.Duration
+	pidFile           *PIDFile
 	logger            *slog.Logger
 }
 
@@ -65,6 +67,7 @@ func NewDaemon(
 		retentionEnabled:  cfg.RetentionEnabled,
 		retentionMaxAge:   cfg.RetentionMaxAge,
 		retentionInterval: cfg.RetentionInterval,
+		pidFile:           NewPIDFile(cfg.PIDFile),
 		logger:            logger,
 	}
 }
@@ -97,6 +100,18 @@ func (d *Daemon) Run(ctx context.Context) error {
 }
 
 func (d *Daemon) Start() error {
+	if err := d.pidFile.Create(); err != nil {
+		return fmt.Errorf("failed to create PID file: %w", err)
+	}
+
+	defer func() {
+		if err := d.pidFile.Remove(); err != nil {
+			d.logger.Error("failed to remove PID file", "error", err)
+		}
+	}()
+
+	d.logger.Info("daemon starting", "pid", os.Getpid(), "pid_file", d.pidFile.path)
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 

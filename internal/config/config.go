@@ -33,6 +33,7 @@ type DaemonConfig struct {
 	RetentionEnabled  bool
 	RetentionMaxAge   time.Duration
 	RetentionInterval time.Duration
+	PIDFile           string
 }
 
 type LoggingConfig struct {
@@ -57,6 +58,10 @@ func Load() (*Config, error) {
 
 	flag.DurationVar(&cfg.Daemon.PollInterval, "poll-interval", cfg.Daemon.PollInterval, "Clipboard polling interval")
 	flag.DurationVar(&cfg.Daemon.ShutdownTimeout, "shutdown-timeout", cfg.Daemon.ShutdownTimeout, "Graceful shutdown timeout")
+	flag.BoolVar(&cfg.Daemon.RetentionEnabled, "retention-enabled", cfg.Daemon.RetentionEnabled, "Enable clipboard retention")
+	flag.DurationVar(&cfg.Daemon.RetentionMaxAge, "retention-max-age", cfg.Daemon.RetentionMaxAge, "Max age of retained clipboard entries")
+	flag.DurationVar(&cfg.Daemon.RetentionInterval, "retention-interval", cfg.Daemon.RetentionInterval, "Interval for retention cleanup")
+	flag.StringVar(&cfg.Daemon.PIDFile, "pid-file", cfg.Daemon.PIDFile, "Path to PID file")
 
 	flag.StringVar(&cfg.Logging.Level, "log-level", cfg.Logging.Level, "Log level (debug, info, warn, error)")
 	flag.StringVar(&cfg.Logging.Format, "log-format", cfg.Logging.Format, "Log format (text, json)")
@@ -65,10 +70,6 @@ func Load() (*Config, error) {
 	flag.IntVar(&cfg.Logging.MaxSize, "log-max-size", cfg.Logging.MaxSize, "Max log file size in MB")
 	flag.IntVar(&cfg.Logging.MaxBackups, "log-max-backups", cfg.Logging.MaxBackups, "Max number of old log files")
 	flag.IntVar(&cfg.Logging.MaxAge, "log-max-age", cfg.Logging.MaxAge, "Max age of log files in days")
-
-	flag.BoolVar(&cfg.Daemon.RetentionEnabled, "retention-enabled", cfg.Daemon.RetentionEnabled, "Enable clipboard retention")
-	flag.DurationVar(&cfg.Daemon.RetentionMaxAge, "retention-max-age", cfg.Daemon.RetentionMaxAge, "Max age of retained clipboard entries")
-	flag.DurationVar(&cfg.Daemon.RetentionInterval, "retention-interval", cfg.Daemon.RetentionInterval, "Interval for retention cleanup")
 
 	flag.Parse()
 

@@ -1,6 +1,10 @@
 package config
 
-import "time"
+import (
+	"fmt"
+	"os"
+	"time"
+)
 
 func Default() *Config {
 	return &Config{
@@ -20,6 +24,7 @@ func Default() *Config {
 			RetentionEnabled:  true,
 			RetentionMaxAge:   30 * 24 * time.Hour, // 30 days
 			RetentionInterval: 1 * 24 * time.Hour,  // 1 day
+			PIDFile:           fmt.Sprintf("/tmp/clipd-%d.pid", os.Geteuid()),
 		},
 		Logging: LoggingConfig{
 			Level:      "info",
