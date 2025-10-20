@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/geodask/clipboard-manager/internal/domain"
 )
@@ -15,6 +16,7 @@ type Storage interface {
 	Search(ctx context.Context, query string, limit int) ([]*domain.ClipboardEntry, error)
 	Count(ctx context.Context) (int, error)
 	Clear(ctx context.Context) error
+	DeleteOlderThan(ctx context.Context, cutoff time.Time) (int, error)
 }
 
 type Analyzer interface {
@@ -132,4 +134,8 @@ func (s *ClipboardService) GetStats(ctx context.Context) (*Stats, error) {
 	return &Stats{
 		TotalEntries: count,
 	}, nil
+}
+
+func (s *ClipboardService) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int, error) {
+	return s.storage.DeleteOlderThan(ctx, cutoff)
 }

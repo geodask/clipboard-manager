@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/geodask/clipboard-manager/internal/domain"
 )
@@ -99,6 +100,26 @@ func (ms *MemoryStorage) Clear(ctx context.Context) error {
 	}
 	ms.entries = nil
 	return nil
+}
+
+func (ms *MemoryStorage) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int, error) {
+	if err := ctx.Err(); err != nil {
+		return 0, err
+	}
+
+	var newEntries []*domain.ClipboardEntry
+	deleted := 0
+
+	for _, entry := range ms.entries {
+		if entry.Timestamp.Before(cutoff) {
+			deleted++
+		} else {
+			newEntries = append(newEntries, entry)
+		}
+	}
+
+	ms.entries = newEntries
+	return deleted, nil
 }
 
 func contains(content, query string) bool {

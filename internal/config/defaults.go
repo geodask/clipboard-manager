@@ -15,8 +15,11 @@ func Default() *Config {
 		},
 		Monitor: MonitorConfig{},
 		Daemon: DaemonConfig{
-			ShutdownTimeout: 5 * time.Second,
-			PollInterval:    500 * time.Millisecond,
+			ShutdownTimeout:   5 * time.Second,
+			PollInterval:      500 * time.Millisecond,
+			RetentionEnabled:  true,
+			RetentionMaxAge:   30 * 24 * time.Hour, // 30 days
+			RetentionInterval: 1 * 24 * time.Hour,  // 1 day
 		},
 		Logging: LoggingConfig{
 			Level:      "info",

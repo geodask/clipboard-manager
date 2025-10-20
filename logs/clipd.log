@@ -1,0 +1,92 @@
+time=2025-10-20T16:04:07.702+03:00 level=INFO msg="starting clipboard manager daemon" db_path=./clipboard.db socket_path=/tmp/clipd.sock poll_interval=500ms
+time=2025-10-20T16:04:07.703+03:00 level=INFO msg="performing initial retention cleanup"
+time=2025-10-20T16:04:07.703+03:00 level=INFO msg="clipboard monitor started" poll_interval=500ms
+time=2025-10-20T16:04:07.703+03:00 level=INFO msg="initial retention cleanup completed" deleted_entries=0
+time=2025-10-20T16:04:07.703+03:00 level=INFO msg="retention cleanup started" interval=24h0m0s
+time=2025-10-20T16:04:07.703+03:00 level=INFO msg="API server listening" socket_path=/tmp/clipd.sock
+time=2025-10-20T16:04:08.228+03:00 level=INFO msg="stored clipboard entry" id=40 content_length=30 timestamp=2025-10-20T16:04:08.218+03:00
+time=2025-10-20T16:04:12.837+03:00 level=INFO msg="received shutdown signal"
+time=2025-10-20T16:04:12.837+03:00 level=INFO msg="monitor loop stopping"
+time=2025-10-20T16:04:12.837+03:00 level=INFO msg="initiating graceful shutdown" timeout=5s
+time=2025-10-20T16:04:12.837+03:00 level=INFO msg="shutting down API server"
+time=2025-10-20T16:04:12.837+03:00 level=INFO msg="retention loop stopping"
+time=2025-10-20T16:04:12.837+03:00 level=INFO msg="API server shutdown complete"
+time=2025-10-20T16:04:12.837+03:00 level=INFO msg="shutdown complete"
+time=2025-10-20T16:04:12.837+03:00 level=ERROR msg="daemon stopped with error" error="context canceled"
+time=2025-10-20T16:04:14.286+03:00 level=INFO msg="starting clipboard manager daemon" db_path=./clipboard.db socket_path=/tmp/clipd.sock poll_interval=500ms
+time=2025-10-20T16:04:14.287+03:00 level=INFO msg="performing initial retention cleanup"
+time=2025-10-20T16:04:14.287+03:00 level=INFO msg="clipboard monitor started" poll_interval=500ms
+time=2025-10-20T16:04:14.287+03:00 level=INFO msg="initial retention cleanup completed" deleted_entries=0
+time=2025-10-20T16:04:14.287+03:00 level=INFO msg="retention cleanup started" interval=24h0m0s
+time=2025-10-20T16:04:14.287+03:00 level=INFO msg="API server listening" socket_path=/tmp/clipd.sock
+time=2025-10-20T16:04:14.812+03:00 level=INFO msg="stored clipboard entry" id=41 content_length=30 timestamp=2025-10-20T16:04:14.795+03:00
+time=2025-10-20T16:04:16.164+03:00 level=INFO msg="received shutdown signal"
+time=2025-10-20T16:04:16.164+03:00 level=INFO msg="initiating graceful shutdown" timeout=5s
+time=2025-10-20T16:04:16.164+03:00 level=INFO msg="retention loop stopping"
+time=2025-10-20T16:04:16.164+03:00 level=INFO msg="shutting down API server"
+time=2025-10-20T16:04:16.164+03:00 level=INFO msg="monitor loop stopping"
+time=2025-10-20T16:04:16.164+03:00 level=INFO msg="API server shutdown complete"
+time=2025-10-20T16:04:16.164+03:00 level=INFO msg="shutdown complete"
+time=2025-10-20T16:04:16.164+03:00 level=ERROR msg="daemon stopped with error" error="context canceled"
+time=2025-10-20T16:04:44.937+03:00 level=ERROR msg="daemon stopped with error" error="context canceled"
+time=2025-10-20T16:04:50.244+03:00 level=ERROR msg="daemon stopped with error" error="context canceled"
+time=2025-10-20T16:04:53.207+03:00 level=INFO msg="starting clipboard manager daemon" db_path=./clipboard.db socket_path=/tmp/clipd.sock poll_interval=500ms
+time=2025-10-20T16:04:53.208+03:00 level=INFO msg="performing initial retention cleanup"
+time=2025-10-20T16:04:53.208+03:00 level=INFO msg="clipboard monitor started" poll_interval=500ms
+time=2025-10-20T16:04:53.208+03:00 level=INFO msg="initial retention cleanup completed" deleted_entries=0
+time=2025-10-20T16:04:53.209+03:00 level=INFO msg="retention cleanup started" interval=24h0m0s
+time=2025-10-20T16:04:53.209+03:00 level=INFO msg="API server listening" socket_path=/tmp/clipd.sock
+time=2025-10-20T16:04:53.733+03:00 level=INFO msg="stored clipboard entry" id=44 content_length=30 timestamp=2025-10-20T16:04:53.716+03:00
+time=2025-10-20T16:05:04.313+03:00 level=INFO msg="received shutdown signal"
+time=2025-10-20T16:05:04.313+03:00 level=INFO msg="monitor loop stopping"
+time=2025-10-20T16:05:04.313+03:00 level=INFO msg="initiating graceful shutdown" timeout=5s
+time=2025-10-20T16:05:04.313+03:00 level=INFO msg="shutting down API server"
+time=2025-10-20T16:05:04.313+03:00 level=INFO msg="retention loop stopping"
+time=2025-10-20T16:05:04.313+03:00 level=INFO msg="API server shutdown complete"
+time=2025-10-20T16:05:04.313+03:00 level=INFO msg="shutdown complete"
+time=2025-10-20T16:05:04.313+03:00 level=ERROR msg="daemon stopped with error" error="context canceled"
+time=2025-10-20T16:05:09.287+03:00 level=INFO msg="starting clipboard manager daemon" db_path=./clipboard.db socket_path=/tmp/clipd.sock poll_interval=500ms
+time=2025-10-20T16:05:09.288+03:00 level=INFO msg="performing initial retention cleanup"
+time=2025-10-20T16:05:09.288+03:00 level=INFO msg="clipboard monitor started" poll_interval=500ms
+time=2025-10-20T16:05:09.288+03:00 level=INFO msg="API server listening" socket_path=/tmp/clipd.sock
+time=2025-10-20T16:05:09.288+03:00 level=INFO msg="initial retention cleanup completed" deleted_entries=0
+time=2025-10-20T16:05:09.288+03:00 level=INFO msg="retention cleanup started" interval=24h0m0s
+time=2025-10-20T16:05:09.812+03:00 level=INFO msg="stored clipboard entry" id=45 content_length=30 timestamp=2025-10-20T16:05:09.794+03:00
+time=2025-10-20T16:05:10.205+03:00 level=INFO msg="received shutdown signal"
+time=2025-10-20T16:05:10.205+03:00 level=INFO msg="initiating graceful shutdown" timeout=5s
+time=2025-10-20T16:05:10.205+03:00 level=INFO msg="shutting down API server"
+time=2025-10-20T16:05:10.205+03:00 level=INFO msg="monitor loop stopping"
+time=2025-10-20T16:05:10.205+03:00 level=INFO msg="retention loop stopping"
+time=2025-10-20T16:05:10.206+03:00 level=INFO msg="API server shutdown complete"
+time=2025-10-20T16:05:10.206+03:00 level=INFO msg="shutdown complete"
+time=2025-10-20T16:05:10.206+03:00 level=ERROR msg="daemon stopped with error" error="context canceled"
+time=2025-10-20T16:05:37.907+03:00 level=INFO msg="starting clipboard manager daemon" db_path=./clipboard.db socket_path=/tmp/clipd.sock poll_interval=500ms
+time=2025-10-20T16:05:37.908+03:00 level=INFO msg="performing initial retention cleanup"
+time=2025-10-20T16:05:37.908+03:00 level=INFO msg="clipboard monitor started" poll_interval=500ms
+time=2025-10-20T16:05:37.908+03:00 level=INFO msg="API server listening" socket_path=/tmp/clipd.sock
+time=2025-10-20T16:05:37.920+03:00 level=INFO msg="initial retention cleanup completed" deleted_entries=1
+time=2025-10-20T16:05:37.920+03:00 level=INFO msg="retention cleanup started" interval=24h0m0s
+time=2025-10-20T16:05:38.434+03:00 level=INFO msg="stored clipboard entry" id=46 content_length=30 timestamp=2025-10-20T16:05:38.416+03:00
+time=2025-10-20T16:05:44.970+03:00 level=INFO msg="received shutdown signal"
+time=2025-10-20T16:05:44.970+03:00 level=INFO msg="initiating graceful shutdown" timeout=5s
+time=2025-10-20T16:05:44.970+03:00 level=INFO msg="shutting down API server"
+time=2025-10-20T16:05:44.970+03:00 level=INFO msg="monitor loop stopping"
+time=2025-10-20T16:05:44.970+03:00 level=INFO msg="retention loop stopping"
+time=2025-10-20T16:05:44.970+03:00 level=INFO msg="API server shutdown complete"
+time=2025-10-20T16:05:44.970+03:00 level=INFO msg="shutdown complete"
+time=2025-10-20T16:05:44.970+03:00 level=ERROR msg="daemon stopped with error" error="context canceled"
+time=2025-10-20T16:05:47.749+03:00 level=INFO msg="starting clipboard manager daemon" db_path=./clipboard.db socket_path=/tmp/clipd.sock poll_interval=500ms
+time=2025-10-20T16:05:47.750+03:00 level=INFO msg="performing initial retention cleanup"
+time=2025-10-20T16:05:47.750+03:00 level=INFO msg="clipboard monitor started" poll_interval=500ms
+time=2025-10-20T16:05:47.750+03:00 level=INFO msg="API server listening" socket_path=/tmp/clipd.sock
+time=2025-10-20T16:05:47.767+03:00 level=INFO msg="initial retention cleanup completed" deleted_entries=36
+time=2025-10-20T16:05:47.767+03:00 level=INFO msg="retention cleanup started" interval=24h0m0s
+time=2025-10-20T16:05:48.275+03:00 level=INFO msg="stored clipboard entry" id=47 content_length=30 timestamp=2025-10-20T16:05:48.257+03:00
+time=2025-10-20T16:05:52.210+03:00 level=INFO msg="received shutdown signal"
+time=2025-10-20T16:05:52.210+03:00 level=INFO msg="monitor loop stopping"
+time=2025-10-20T16:05:52.210+03:00 level=INFO msg="initiating graceful shutdown" timeout=5s
+time=2025-10-20T16:05:52.210+03:00 level=INFO msg="shutting down API server"
+time=2025-10-20T16:05:52.210+03:00 level=INFO msg="retention loop stopping"
+time=2025-10-20T16:05:52.210+03:00 level=INFO msg="API server shutdown complete"
+time=2025-10-20T16:05:52.210+03:00 level=INFO msg="shutdown complete"
+time=2025-10-20T16:05:52.210+03:00 level=ERROR msg="daemon stopped with error" error="context canceled"

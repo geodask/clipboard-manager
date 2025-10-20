@@ -10,32 +10,36 @@ import (
 )
 
 type MockStorage struct {
-	StoreResult     *domain.ClipboardEntry
-	StoreError      error
-	GetRecentResult []*domain.ClipboardEntry
-	GetRecentError  error
-	GetByIdResult   *domain.ClipboardEntry
-	GetByIdError    error
-	DeleteError     error
-	SearchResult    []*domain.ClipboardEntry
-	SearchError     error
-	CountResult     int
-	CountError      error
-	ClearError      error
+	StoreResult           *domain.ClipboardEntry
+	StoreError            error
+	GetRecentResult       []*domain.ClipboardEntry
+	GetRecentError        error
+	GetByIdResult         *domain.ClipboardEntry
+	GetByIdError          error
+	DeleteError           error
+	SearchResult          []*domain.ClipboardEntry
+	SearchError           error
+	CountResult           int
+	CountError            error
+	ClearError            error
+	DeleteOlderThanResult int
+	DeleteOlderThanError  error
 
-	StoreCalled     bool
-	StoreCalledWith *domain.ClipboardEntry
-	GetRecentCalled bool
-	GetRecentLimit  int
-	GetByIdCalled   bool
-	GetByIdId       string
-	DeleteCalled    bool
-	DeleteId        string
-	SearchCalled    bool
-	SearchQuery     string
-	SearchLimit     int
-	CountCalled     bool
-	ClearCalled     bool
+	StoreCalled           bool
+	StoreCalledWith       *domain.ClipboardEntry
+	GetRecentCalled       bool
+	GetRecentLimit        int
+	GetByIdCalled         bool
+	GetByIdId             string
+	DeleteCalled          bool
+	DeleteId              string
+	SearchCalled          bool
+	SearchQuery           string
+	SearchLimit           int
+	CountCalled           bool
+	ClearCalled           bool
+	DeleteOlderThanCalled bool
+	DeleteOlderThanCutoff time.Time
 }
 
 func (m *MockStorage) Store(ctx context.Context, entry *domain.ClipboardEntry) (*domain.ClipboardEntry, error) {
@@ -77,6 +81,12 @@ func (m *MockStorage) Count(ctx context.Context) (int, error) {
 func (m *MockStorage) Clear(ctx context.Context) error {
 	m.ClearCalled = true
 	return m.ClearError
+}
+
+func (m *MockStorage) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int, error) {
+	m.DeleteOlderThanCalled = true
+	m.DeleteOlderThanCutoff = cutoff
+	return m.DeleteOlderThanResult, m.DeleteOlderThanError
 }
 
 type MockAnalyzer struct {
@@ -726,6 +736,84 @@ func TestGetStats(t *testing.T) {
 
 			if mockStorage.CountCalled != tt.wantCountCalled {
 				t.Errorf("expected CountCalled=%v, got %v", tt.wantCountCalled, mockStorage.CountCalled)
+			}
+		})
+	}
+}
+
+func TestDeleteOlderThan(t *testing.T) {
+	now := time.Now()
+	cutoff := now.Add(-24 * time.Hour)
+
+	tests := []struct {
+		name                      string
+		cutoff                    time.Time
+		deleteOlderThanResult     int
+		deleteOlderThanError      error
+		wantErr                   error
+		wantResult                int
+		wantDeleteOlderThanCalled bool
+	}{
+		{
+			name:                      "Success",
+			cutoff:                    cutoff,
+			deleteOlderThanResult:     5,
+			deleteOlderThanError:      nil,
+			wantErr:                   nil,
+			wantResult:                5,
+			wantDeleteOlderThanCalled: true,
+		},
+		{
+			name:                      "StorageError",
+			cutoff:                    cutoff,
+			deleteOlderThanResult:     0,
+			deleteOlderThanError:      errors.New("database error"),
+			wantErr:                   nil,
+			wantResult:                0,
+			wantDeleteOlderThanCalled: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			mockStorage := &MockStorage{
+				DeleteOlderThanResult: tt.deleteOlderThanResult,
+				DeleteOlderThanError:  tt.deleteOlderThanError,
+			}
+
+			service := NewClipboardService(mockStorage, &MockAnalyzer{})
+
+			result, err := service.DeleteOlderThan(context.Background(), tt.cutoff)
+
+			if tt.wantErr != nil {
+				if err == nil {
+					t.Fatalf("expected error %v, got nil", tt.wantErr)
+				}
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("expected error %v, got %v", tt.wantErr, err)
+				}
+			} else if tt.name == "StorageError" {
+				if err == nil {
+					t.Fatal("expected storage error, got nil")
+				}
+			} else {
+				if err != nil {
+					t.Fatalf("expected no error, got %v", err)
+				}
+			}
+
+			if result != tt.wantResult {
+				t.Errorf("expected result %d, got %d", tt.wantResult, result)
+			}
+
+			if mockStorage.DeleteOlderThanCalled != tt.wantDeleteOlderThanCalled {
+				t.Errorf("expected DeleteOlderThanCalled=%v, got %v", tt.wantDeleteOlderThanCalled, mockStorage.DeleteOlderThanCalled)
+			}
+
+			if tt.wantDeleteOlderThanCalled && !mockStorage.DeleteOlderThanCutoff.Equal(tt.cutoff) {
+				t.Errorf("expected DeleteOlderThanCutoff=%v, got %v", tt.cutoff, mockStorage.DeleteOlderThanCutoff)
 			}
 		})
 	}

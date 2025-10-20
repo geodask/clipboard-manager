@@ -28,8 +28,11 @@ type MonitorConfig struct {
 }
 
 type DaemonConfig struct {
-	ShutdownTimeout time.Duration
-	PollInterval    time.Duration
+	ShutdownTimeout   time.Duration
+	PollInterval      time.Duration
+	RetentionEnabled  bool
+	RetentionMaxAge   time.Duration
+	RetentionInterval time.Duration
 }
 
 type LoggingConfig struct {
@@ -62,6 +65,11 @@ func Load() (*Config, error) {
 	flag.IntVar(&cfg.Logging.MaxSize, "log-max-size", cfg.Logging.MaxSize, "Max log file size in MB")
 	flag.IntVar(&cfg.Logging.MaxBackups, "log-max-backups", cfg.Logging.MaxBackups, "Max number of old log files")
 	flag.IntVar(&cfg.Logging.MaxAge, "log-max-age", cfg.Logging.MaxAge, "Max age of log files in days")
+
+	flag.BoolVar(&cfg.Daemon.RetentionEnabled, "retention-enabled", cfg.Daemon.RetentionEnabled, "Enable clipboard retention")
+	flag.DurationVar(&cfg.Daemon.RetentionMaxAge, "retention-max-age", cfg.Daemon.RetentionMaxAge, "Max age of retained clipboard entries")
+	flag.DurationVar(&cfg.Daemon.RetentionInterval, "retention-interval", cfg.Daemon.RetentionInterval, "Interval for retention cleanup")
+
 	flag.Parse()
 
 	return cfg, nil

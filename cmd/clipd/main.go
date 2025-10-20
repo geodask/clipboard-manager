@@ -43,7 +43,7 @@ func main() {
 
 	apiServer := api.NewServer(service, cfg.API, logger)
 
-	daemon := daemon.NewDaemon(monitor, service, apiServer, cfg.Daemon.PollInterval, cfg.Daemon.ShutdownTimeout, logger)
+	daemon := daemon.NewDaemon(monitor, service, apiServer, logger, cfg.Daemon)
 
 	if err := daemon.Start(); err != nil {
 		logger.Error("daemon stopped with error", "error", err)

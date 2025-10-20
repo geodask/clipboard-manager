@@ -16,7 +16,7 @@ type SQLiteStorage struct {
 }
 
 func NewSQLiteStorage(dbPath string) (*SQLiteStorage, error) {
-	db, err := sql.Open("sqlite3", dbPath)
+	db, err := sql.Open("sqlite3", dbPath+"?_txn=immediate&parseTime=true")
 	if err != nil {
 		return nil, err
 	}
@@ -192,6 +192,23 @@ func (s *SQLiteStorage) Count(ctx context.Context) (int, error) {
 func (s *SQLiteStorage) Clear(ctx context.Context) error {
 	_, err := s.db.ExecContext(ctx, "DELETE FROM clipboard_history")
 	return err
+}
+
+func (s *SQLiteStorage) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int, error) {
+	result, err := s.db.ExecContext(ctx,
+		"DELETE FROM clipboard_history WHERE timestamp < ?",
+		cutoff,
+	)
+	if err != nil {
+		return 0, err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(rows), nil
 }
 
 func (s *SQLiteStorage) Close() error {
